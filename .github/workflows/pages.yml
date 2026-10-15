@@ -21,8 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ASTRO_TELEMETRY_DISABLED: '1'
-      SITE_URL: ${{ vars.SITE_URL || 'https://chikirao.github.io' }}
-      BASE_PATH: ${{ vars.BASE_PATH || '/clever-knots/' }}
+      SITE_URL: ${{ vars.SITE_URL || 'https://cleverknots.ru' }}
+      BASE_PATH: ${{ vars.BASE_PATH || '/' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

@@ -3,7 +3,7 @@ import react from '@astrojs/react';
 import tailwind from '@tailwindcss/vite';
 
 export default defineConfig({
-  site: process.env.SITE_URL || 'https://chikirao.github.io',
+  site: process.env.SITE_URL || 'https://cleverknots.ru',
   base: process.env.BASE_PATH || '/',
   trailingSlash: 'always',
   integrations: [react()],
