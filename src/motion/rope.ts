@@ -48,55 +48,39 @@ export function route(root:HTMLElement):RopePoint[]{
   const hero=root.querySelector('.hero')!.getBoundingClientRect(),heroBox=new DOMRect(0,hero.bottom,w,0);
   const tail=TAIL.map(([x,y])=>({x:logo.left+x/1024*logo.width,y:logo.top+y/1536*logo.height}));
   const heading=box('.section-heading',heroBox),photo=box('.selected-image',heroBox),caption=box('.work-caption',heroBox);
-  const detail=box('.detail-section h2'),figure=box('.detail-section figure'),macro=box('.detail-section figure img'),about=box('.about-preview'),contact=box('.contact');
+  const detail=box('.detail-section h2'),figure=box('.detail-section figure'),about=box('.about-preview'),contact=box('.contact');
   const loop=(ax:number,ay:number,k:number)=>LOOP.map(([x,y])=>({x:ax+x*R*k,y:ay+y*R*k}));
   let points:Vec[];
   if(w>=1000){
-    // Desktop: down the right lane beside the text column, along the top edge of the macro photo, through the left margin
-    // past both headings, back to the right above the contact block and a resting loop there.
-    const lane=w-Math.max(R*2.3,(w-heading.right)*.72),margin=detail.left*.5,gap=(about.bottom-about.height*.06+contact.top)/2-R*1.5;
+    // Desktop: right lane beside the text column, a wide sweep under the macro photo, then a resting loop in the contact block.
+    const lane=w-Math.max(R*2.3,(w-heading.right)*.72);
     points=[...tail,
       {x:lane-R*.4,y:heading.top+heading.height*.25},
       {x:lane+R*.3,y:heading.bottom+R*2.5},
       {x:lane+R*.2,y:caption.cy},
-      {x:Math.min(lane,macro.right+R*.6),y:macro.top-R*3.5},
-      {x:macro.right-R*1.2,y:macro.top-R*.55},
-      {x:macro.left+macro.width*.4,y:macro.top-R*.4},
-      {x:macro.left-R*2,y:macro.top-R*.6},
-      {x:margin+R*.8,y:Math.min(detail.top,macro.top+R*3)},
-      {x:margin,y:detail.cy},
-      {x:margin,y:about.top+about.height*.4},
-      {x:margin+R*1.5,y:gap},
-      {x:w*.5,y:gap+R*.8},
+      {x:figure.right-figure.width*.16,y:figure.top-(figure.top-Math.max(caption.bottom,photo.bottom-200))*.45},
+      {x:figure.left+figure.width*.46,y:figure.top+R*1.6},
+      {x:figure.left+figure.width*.6,y:figure.bottom-R*1.6},
+      {x:figure.right-figure.width*.1,y:figure.bottom+R*3},
+      {x:lane,y:about.top+about.height*.45},
       {x:lane-R*1.2,y:contact.top+R*1.5},
       ...loop(lane-R*1.6,contact.top+contact.height*.38,1.15)];
   }else{
-    // Stacked layout, one calm line down the page: the right edge, across the top edge of the featured photo to its left
-    // edge and down it, tucked under the photo, out at its bottom right corner, half under the right edge of the macro photo,
-    // and a resting loop under the contact button. The photos cover the part of the rope that runs under them.
-    const lane=w-R*1.15,button=box('.hero-action .button',heroBox),contactButton=box('.contact .button');
+    // Stacked layout: a calm wave along the right edge, partly over the photos, tucked behind wide buttons.
+    const outer=w-R-5,inner=w-R*(w<420?2.3:3.3),button=box('.hero-action .button',heroBox),contactButton=box('.contact .button');
     points=[...tail,
-      {x:lane,y:button.cy},
-      {x:lane,y:photo.top-R*5.5},
-      {x:lane-R*1.1,y:photo.top-R*1.8},
-      {x:photo.right-R*3.2,y:photo.top-R*.25},
-      {x:photo.right-R*6,y:photo.top},
-      {x:photo.left+photo.width*.5,y:photo.top},
-      {x:photo.left+R*2.6,y:photo.top+R*.1},
-      {x:photo.left+R*.25,y:photo.top+R*1.8},
-      {x:photo.left,y:photo.top+photo.height*.3},
-      {x:photo.left+R*.3,y:photo.top+photo.height*.5},
-      {x:photo.left+R*2.8,y:photo.top+photo.height*.64},
-      {x:photo.left+photo.width*.55,y:photo.top+photo.height*.8},
-      {x:photo.right-R*1.6,y:photo.bottom-R*1.2},
-      {x:lane,y:photo.bottom+R*1.4},
-      {x:lane,y:caption.cy},
-      {x:lane,y:detail.cy},
-      {x:lane,y:macro.top+macro.height*.5},
-      {x:lane,y:about.cy},
-      // The contact heading reaches almost to the edge: the rope runs half off screen beside it.
-      {x:w-R*.4,y:contact.top+R*2},
-      {x:w-R*.4,y:contactButton.top-R},
+      {x:outer,y:button.cy},
+      {x:inner,y:heading.top+heading.height*.55},
+      {x:outer,y:photo.top+photo.height*.3},
+      {x:inner+R*.6,y:photo.top+photo.height*.55},
+      {x:outer,y:photo.bottom-R*2},
+      {x:inner+R,y:caption.cy},
+      {x:inner,y:detail.cy},
+      {x:outer,y:figure.top+figure.height*.45},
+      {x:inner,y:figure.bottom+(about.top-figure.bottom)*.6},
+      {x:outer,y:about.cy},
+      {x:outer,y:contact.top+R*2},
+      {x:outer,y:contactButton.top-R},
       ...loop(w-R*2.5,contactButton.bottom+R*.3,.9)];
   }
   return resample(spline(points),3);
