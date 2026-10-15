@@ -5,7 +5,7 @@ import YAML from 'yaml';
 const schema=YAML.parse(fs.readFileSync('.pages.yml','utf8'));
 const collection=schema.content.find(c=>c.name==='works');
 assert.equal(collection.path,'src/content/works');
-assert.equal(schema.media.output,'/src/assets/uploads');
+const media=[schema.media].flat();assert.equal(media.length,1);assert.equal(media[0].output,'/src/assets/uploads');
 const fields=new Map(collection.fields.map(f=>[f.name,f]));
 for(const name of ['title','slug','description','category','images','published','order'])assert(fields.has(name),`CMS field ${name}`);
 assert.equal(fields.get('published').default,false,'Новые работы должны быть черновиками');
