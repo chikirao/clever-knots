@@ -4,6 +4,12 @@ import fibreUrl from '../assets/rope-fibre.png?url';
 
 /** The fibre tile starts 40 px of the 79 px logo rope (≈1.01 radii) below the route start, so photo and mesh line up at the seam. */
 const FIBRE_TOP=40/39.5;
+/** The canvas lives in the document, not in the viewport: the compositor scrolls it together with the page, so the rope
+ *  never trails behind a native (iOS momentum) scroll. It covers the visible area plus this many viewport heights above
+ *  and below, and moves only when the scroll gets within GUARD viewport heights of its edge. */
+const OVERSCAN=.5,GUARD=.25;
+/** Canvas pixel budget: the band is taller than the screen, so the resolution drops slightly on very large screens. */
+const PIXELS=matchMedia('(pointer:coarse)').matches?4e6:1.2e7;
 
 /* One ribbon along the route. Every pixel solves the cross-section of a real three-strand Z-laid rope:
  * three round strands on a helix, the front-most surface wins. That gives true strand silhouettes,
@@ -148,13 +154,16 @@ void main(){
 /** Analytic rope impostor on a single triangle strip. The GPU moves the grabbed area; no geometry upload per frame. */
 export function mountRope3D(root:HTMLElement):null|(()=>void){
   const canvas=root.querySelector<HTMLCanvasElement>('[data-rope-canvas]')!;
-  const gl=canvas.getContext('webgl',{alpha:true,antialias:true,depth:true,stencil:true,premultipliedAlpha:true,powerPreference:'low-power'});
+  const gl=canvas.getContext('webgl',{alpha:true,antialias:false,depth:true,stencil:true,premultipliedAlpha:true,powerPreference:'low-power'});
   if(!gl)return null;
   const controller=new AbortController(),{signal}=controller;
-  let points:RopePoint[]=[],radius=12,pin=0,length=1,width=innerWidth,height=innerHeight,dirty=true,disposed=false,occlusion={left:0,right:0,top:0,bottom:0};
+  let points:RopePoint[]=[],radius=12,pin=0,length=1,width=innerWidth,dirty=true,disposed=false,occlusion={left:0,right:0,top:0,bottom:0};
   let strip:WebGLBuffer|null=null,count=0;
   const x={position:0,velocity:0,target:0},y={position:0,velocity:0,target:0};
-  let grabbed=0,pointer:number|null=null,pointerStart={x:0,y:0},lastScroll=-1,shapeDirty=true;
+  let grabbed=0,pointer:number|null=null,pointerStart={x:0,y:0},shapeDirty=true;
+  // Band of the page the canvas covers, all in page coordinates. viewH keeps the tallest viewport seen at this width,
+  // so the iOS toolbar showing and hiding during a scroll does not reallocate the canvas.
+  let viewW=0,viewH=0,bandTop=0,bandH=1,rootTop=0,rootLeft=0,rootH=1;
   const spread=()=>width<1000?145:240;
   const namespace='http://www.w3.org/2000/svg';
   const svg=document.createElementNS(namespace,'svg');
@@ -196,16 +205,34 @@ export function mountRope3D(root:HTMLElement):null|(()=>void){
     if(!strip)strip=gl!.createBuffer();gl!.bindBuffer(gl!.ARRAY_BUFFER,strip);gl!.bufferData(gl!.ARRAY_BUFFER,data,gl!.STATIC_DRAW);count=points.length*2;
     hit.setAttribute('stroke-width',String(radius*2+14));dirty=true;shapeDirty=true;
   }
-  function resize(){if(disposed)return;width=canvas.clientWidth||innerWidth;height=canvas.clientHeight||innerHeight;const dpr=Math.min(devicePixelRatio,2);canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);gl!.viewport(0,0,canvas.width,canvas.height);svg.setAttribute('viewBox',`0 0 ${width} ${height}`);build();}
+  /** Keep the band around the visible area. Returns early while the compositor still has GUARD of drawn rope ahead. */
+  function place(force=false){
+    const top=scrollY,view=innerHeight,min=rootTop,max=rootTop+rootH-bandH,guard=viewH*GUARD;
+    if(!force&&(top>=bandTop+guard||bandTop<=min)&&(top+view<=bandTop+bandH-guard||bandTop>=max))return;
+    const next=Math.round(Math.max(min,Math.min(max,top-(bandH-view)/2)));
+    if(next===bandTop&&!force)return;
+    bandTop=next;canvas.style.top=`${bandTop-rootTop}px`;dirty=true;
+  }
+  function resize(){
+    if(disposed)return;
+    if(innerWidth!==viewW){viewW=innerWidth;viewH=0;}viewH=Math.max(viewH,innerHeight);
+    const box=root.getBoundingClientRect();rootLeft=box.left+scrollX;rootTop=box.top+scrollY;rootH=box.height;width=box.width;
+    bandH=Math.max(1,Math.min(Math.round(rootH),Math.ceil(viewH*(1+2*OVERSCAN))));
+    const dpr=Math.min(devicePixelRatio,2,Math.sqrt(PIXELS/(width*bandH))),w=Math.round(width*dpr),h=Math.round(bandH*dpr);
+    if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl!.viewport(0,0,w,h);}
+    canvas.style.height=`${bandH}px`;
+    svg.setAttribute('viewBox',`0 0 ${width} ${rootH}`);group.setAttribute('transform',`translate(${-rootLeft},${-rootTop})`);
+    build();place(true);
+  }
   function nearest(px:number,py:number){let min=Infinity,best=points[0];for(const p of points){const distance=(p.x-px)**2+(p.y-py)**2;if(distance<min){min=distance;best=p;}}return best;}
   hit.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();pointer=e.pointerId;pointerStart={x:e.clientX,y:e.clientY};grabbed=Math.max(pin+radius*4,nearest(e.clientX,e.clientY+scrollY).s);hit.setPointerCapture(e.pointerId);hit.classList.add('grabbed');dirty=true;},{signal});
   hit.addEventListener('pointermove',e=>{if(pointer!==e.pointerId)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y,max=width<1000?65:90,factor=Math.min(1,max/(Math.hypot(dx,dy)||1));x.target=dx*factor;y.target=dy*factor;dirty=true;},{signal});
   const letGo=()=>{pointer=null;x.target=0;y.target=0;hit.classList.remove('grabbed');dirty=true;};
   hit.addEventListener('pointerup',letGo,{signal});hit.addEventListener('pointercancel',letGo,{signal});hit.addEventListener('lostpointercapture',letGo,{signal});
-  hit.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();grabbed=Math.max(pin+radius*4,nearest(width*.85,scrollY+height*.7).s);x.velocity-=220;y.velocity+=60;dirty=true;}},{signal});
+  hit.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();grabbed=Math.max(pin+radius*4,nearest(width*.85,scrollY+innerHeight*.7).s);x.velocity-=220;y.velocity+=60;dirty=true;}},{signal});
   function draw(p:WebGLProgram,u:Record<string,WebGLUniformLocation|null>,widthScale:number,offset:[number,number],lag:number,shadowStrength=1){
     gl!.useProgram(p);
-    gl!.uniform2f(u.uViewport,width,height);gl!.uniform2f(u.uPull,x.position,y.position);gl!.uniform2f(u.uOffset,...offset);gl!.uniform1f(u.uScroll,scrollY);
+    gl!.uniform2f(u.uViewport,width,bandH);gl!.uniform2f(u.uPull,x.position,y.position);gl!.uniform2f(u.uOffset,offset[0]-rootLeft,offset[1]);gl!.uniform1f(u.uScroll,bandTop);
     gl!.uniform1f(u.uGrab,grabbed);gl!.uniform1f(u.uSpread,spread());gl!.uniform1f(u.uPin,pin);gl!.uniform1f(u.uR,radius);gl!.uniform1f(u.uEnd,length);
     gl!.uniform1f(u.uWidth,widthScale);gl!.uniform1f(u.uLag,lag);gl!.uniform1f(u.uPitch,radius*2*ROPE_LAY);gl!.uniform1f(u.uPhase,0);
     gl!.uniform1f(u.uDpr,canvas.width/width);gl!.uniform1f(u.uFade,radius*1.2);gl!.uniform1i(u.uNoise,0);gl!.uniform1f(u.uShadow,shadowStrength);gl!.uniform1f(u.uShear,-.3);gl!.uniform1i(u.uFibre,1);gl!.uniform1f(u.uFibreShift,-radius*FIBRE_TOP);gl!.uniform1f(u.uFibreRelief,.45);gl!.uniform1f(u.uFibreSkew,.6);
@@ -217,7 +244,8 @@ export function mountRope3D(root:HTMLElement):null|(()=>void){
     if(disposed||document.hidden)return;
     const active=Math.abs(x.position)+Math.abs(y.position)+Math.abs(x.velocity)+Math.abs(y.velocity)+Math.abs(x.target)+Math.abs(y.target)>.04;
     if(active){const dt=Math.min(deltaMs/1000,1/30);for(let i=0;i<2;i++)for(const spring of [x,y]){const step=dt/2;spring.velocity+=((spring.target-spring.position)*180-spring.velocity*(pointer===null?16:26))*step;spring.position+=spring.velocity*step;}dirty=true;}
-    if(!dirty&&lastScroll===scrollY)return;dirty=false;lastScroll=scrollY;
+    place();
+    if(!dirty)return;dirty=false;
     const shadowOffset:[number,number]=[radius*.14,radius*.3];
     gl!.clearColor(0,0,0,0);gl!.clearStencil(0);gl!.clear(gl!.COLOR_BUFFER_BIT|gl!.DEPTH_BUFFER_BIT|gl!.STENCIL_BUFFER_BIT);
     gl!.activeTexture(gl!.TEXTURE0);gl!.bindTexture(gl!.TEXTURE_2D,texture);gl!.activeTexture(gl!.TEXTURE1);gl!.bindTexture(gl!.TEXTURE_2D,fibre);
@@ -232,13 +260,14 @@ export function mountRope3D(root:HTMLElement):null|(()=>void){
     gl!.depthFunc(gl!.LESS);gl!.depthMask(false);gl!.stencilFunc(gl!.EQUAL,1,255);gl!.stencilOp(gl!.KEEP,gl!.KEEP,gl!.KEEP);
     draw(shade,shadowUniforms,2.1,shadowOffset,radius*5,1.6);
     gl!.disable(gl!.STENCIL_TEST);gl!.depthMask(true);
-    group.setAttribute('transform',`translate(0,${-scrollY})`);
     if(active||shapeDirty){let connected=false;const commands:string[]=[];
       for(const p of points){if(p.s<pin)continue;const lock=Math.min(1,(p.s-pin)/(radius*6)),weight=Math.exp(-Math.pow((p.s-grabbed)/spread(),2))*lock,px=p.x+x.position*weight,py=p.y+y.position*weight;if(px>occlusion.left&&px<occlusion.right&&py>occlusion.top&&py<occlusion.bottom){connected=false;continue;}commands.push(`${connected?'L':'M'}${px.toFixed(1)},${py.toFixed(1)}`);connected=true;}
       hit.setAttribute('d',commands.join(' '));shapeDirty=false;}
     canvas.dataset.pull=String(Math.round(Math.hypot(x.position,y.position)*10)/10);
   }
-  const observer=new ResizeObserver(resize);observer.observe(root);addEventListener('resize',resize,{signal});document.fonts.ready.then(()=>{if(!disposed)resize();});
+  const observer=new ResizeObserver(resize);observer.observe(root);
+  // Layout changes reach the ResizeObserver. A shrinking iOS toolbar is not one: only a new width or a taller viewport counts.
+  addEventListener('resize',()=>{if(innerWidth!==viewW||innerHeight>viewH)resize();},{signal});document.fonts.ready.then(()=>{if(!disposed)resize();});
   canvas.addEventListener('webglcontextlost',e=>{if(disposed)return;e.preventDefault();root.dataset.ropeFallback='true';root.dispatchEvent(new Event('rope:lost'));},{signal});
   canvas.dataset.renderer='webgl-3d';resize();gsap.ticker.add(render);
   return()=>{disposed=true;controller.abort();observer.disconnect();gsap.ticker.remove(render);svg.remove();if(strip)gl.deleteBuffer(strip);gl.deleteTexture(texture);gl.deleteTexture(fibre);gl.deleteProgram(material);gl.deleteProgram(shade);gl.getExtension('WEBGL_lose_context')?.loseContext();};
