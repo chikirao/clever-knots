@@ -1,3 +1,14 @@
+# Проект: «Макраме Клевер»
+
+Сайт-портфолио мамы (макраме, плетение, вязание) — подарок на день рождения. Публикуется на https://cleverknots.ru (GitHub Pages, `.github/workflows/pages.yml`, на каждый push в main). Общение с владельцем — по-русски, простыми словами.
+
+- Стек: Astro + React-острова, GSAP, Tailwind. Контент — `src/content/works/*.json` (схема в `src/lib/content.ts`), админка Pages CMS (`.pages.yml`).
+- Дизайн утверждён: `DESIGN.md`. Не менять стиль без просьбы. Без положительного letter-spacing.
+- 3D-канат (WebGL): `src/motion/rope-3d.ts`, `rope.ts`, описание в `docs/ROPE.md`. Канат не должен заходить на текст на ширинах 360–1920.
+- Импорт товаров из VK: `scripts/vk-import.mjs`, `docs/VK-ИМПОРТ.md`. Ключ VK только в секрете GitHub `VK_TOKEN`, никогда в код или чат. Фото «Фото скоро» — временные заглушки.
+- Деплой и домен: `docs/DEPLOYMENT.md`.
+- Перед коммитом: `npm run check` и `npm run build` без ошибок. Мелкие понятные коммиты.
+
 ## Development
 
 When starting the dev server, use background mode:
