@@ -1,0 +1,22 @@
+{
+  "slug": "panno-nastennoe-derevo",
+  "title": "Панно настенное «Дерево»",
+  "description": "Декоративное панно из натуральных материалов. На заказ — другого размера и цвета. Панно на фото — диаметр 22 см.",
+  "category": "Макраме",
+  "price": "2 500 ₽",
+  "images": [
+    {
+      "src": "/src/assets/uploads/vk/10384076-placeholder-1.webp",
+      "alt": "Панно настенное «Дерево»: временная заглушка, фото 1"
+    },
+    {
+      "src": "/src/assets/uploads/vk/10384076-placeholder-2.webp",
+      "alt": "Панно настенное «Дерево»: временная заглушка, фото 2"
+    }
+  ],
+  "vkId": 10384076,
+  "vkUrl": "https://vk.ru/product-225481050_10384076",
+  "published": true,
+  "featured": false,
+  "order": 24
+}

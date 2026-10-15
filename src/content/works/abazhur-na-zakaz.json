@@ -1,0 +1,22 @@
+{
+  "slug": "abazhur-na-zakaz",
+  "title": "Абажур на заказ",
+  "description": "Пример потолочного абажура. Сплету абажур по вашим запросам: стиль, цвет и размер — в технике макраме.",
+  "category": "Макраме",
+  "price": "5 000 ₽",
+  "images": [
+    {
+      "src": "/src/assets/uploads/vk/13012464-placeholder-1.webp",
+      "alt": "Абажур на заказ: временная заглушка, фото 1"
+    },
+    {
+      "src": "/src/assets/uploads/vk/13012464-placeholder-2.webp",
+      "alt": "Абажур на заказ: временная заглушка, фото 2"
+    }
+  ],
+  "vkId": 13012464,
+  "vkUrl": "https://vk.ru/product-225481050_13012464",
+  "published": true,
+  "featured": false,
+  "order": 22
+}

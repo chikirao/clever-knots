@@ -1,0 +1,15 @@
+{
+  "slug": "pletenie-dlya-butylki",
+  "title": "Плетение для бутылки",
+  "description": "Плетёный чехол с ручкой и кисточкой. На фотографиях можно рассмотреть общий вид, узлы и фактуру нити.",
+  "category": "Макраме",
+  "published": true,
+  "featured": true,
+  "order": 10,
+  "images": [
+    { "src": "/src/assets/uploads/bottle-window.webp", "alt": "Бутылка в светлом плетёном чехле с ручкой у окна" },
+    { "src": "/src/assets/uploads/bottle-table.webp", "alt": "Плетёный чехол для бутылки рядом с бокалом на столе" },
+    { "src": "/src/assets/uploads/bottle-detail.webp", "alt": "Узлы плетёного чехла крупным планом" },
+    { "src": "/src/assets/uploads/fiber-macro.webp", "alt": "Макрофотография узла и тонких волокон светлой нити" }
+  ]
+}

@@ -1,0 +1,67 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import { site, href } from '../lib/content';
+import Icon from '../components/Icon.astro';
+import '../styles/global.css';
+const {title='Мастерская ручной работы',description=site.aboutText,home=false,image} = Astro.props;
+const canonical = new URL(Astro.url.pathname,Astro.site);
+---
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{title} · {site.name}</title><meta name="description" content={description} />
+  <meta name="theme-color" content="#F4F0E5" />
+  <link rel="icon" type="image/png" href={href('favicon.png')} />
+  <link rel="canonical" href={canonical} />
+  <link rel="sitemap" href={href('sitemap.xml')} />
+  <script type="application/ld+json" set:html={JSON.stringify({'@context':'https://schema.org','@type':'Organization',name:site.name,url:new URL(href(),Astro.site).href,sameAs:[site.vkUrl]})} />
+  <meta property="og:title" content={`${title} · ${site.name}`} /><meta property="og:description" content={description} /><meta property="og:type" content="website" /><meta property="og:url" content={canonical} /><meta property="og:image" content={new URL(image || href('og.jpg'), Astro.site)} />
+  <ClientRouter />
+</head>
+<body>
+  <div class="loader" id="loader" role="status" aria-label="Загрузка">
+    <svg class="loader-mark" viewBox="-154 -154 308 308" aria-hidden="true"><defs><path id="loader-petal" pathLength="1" d="M0-17L-67.5-84.5A35.5 35.5 0 1 1-11.3-127.8C-5.3-117.4 15.5-104 15.5-91C15.5-78 7-66 0-57C-7-66-15.5-78-15.5-91C-15.5-104 5.3-117.4 11.3-127.8A35.5 35.5 0 1 1 67.5-84.5Z" /></defs><g><use href="#loader-petal" /><use href="#loader-petal" transform="rotate(90)" /><use href="#loader-petal" transform="rotate(180)" /><use href="#loader-petal" transform="rotate(270)" /></g></svg>
+    <span>Clever Knots</span>
+    <script is:inline>
+      (() => {
+        // Shown on every full load for at least 2 s, longer on slow devices until the page has loaded.
+        // Client-side navigation never shows it: the incoming page's copy is dropped before the swap.
+        const loader = document.getElementById('loader');
+        let finished = false;
+        const finish = () => {
+          if (finished || !loader) return;
+          finished = true;
+          setTimeout(() => {
+            loader.classList.add('loader-out');
+            document.documentElement.classList.remove('is-loading');
+            setTimeout(() => loader.remove(), 700);
+          }, Math.max(0, 2000 - performance.now()));
+        };
+        document.documentElement.classList.add('is-loading');
+        if (document.readyState === 'complete') finish(); else addEventListener('load', finish, { once: true });
+        setTimeout(finish, 8000);
+        document.addEventListener('astro:before-swap', (event) => event.newDocument.getElementById('loader')?.remove());
+      })();
+    </script>
+  </div>
+  <noscript><style>.loader{display:none}</style></noscript>
+  <a class="skip-link" href="#main">Перейти к содержимому</a>
+  <header class:list={['header',home && 'header-home']}>
+    <a class="brand" href={href()} aria-label="Clever Knots, главная"><img src={href('brand-mark.png')} alt="" width="38" height="38" /><span>Clever Knots</span></a>
+    <nav class="desktop-nav" aria-label="Основная навигация"><a href={href('works/')} aria-current={Astro.url.pathname.includes('/works')?'page':undefined}>Работы</a><a href={href('about/')} aria-current={Astro.url.pathname.includes('/about')?'page':undefined}>О мастерской</a><a href={site.vkUrl} target="_blank" rel="noopener noreferrer">VK <Icon size={16} /></a></nav>
+    <button class="menu-toggle" data-menu-open aria-haspopup="dialog">Меню <Icon name="menu" /></button>
+  </header>
+  <dialog class="menu-dialog" data-menu>
+    <div class="menu-top"><span>Clever Knots</span><button data-menu-close aria-label="Закрыть меню"><Icon name="close" size={28} /></button></div>
+    <nav aria-label="Мобильная навигация"><a href={href()}>Главная</a><a href={href('works/')}>Работы</a><a href={href('about/')}>О мастерской</a><a href={site.vkUrl} target="_blank" rel="noopener noreferrer">Сообщество VK <Icon /></a></nav>
+    <p>{site.tagline}</p>
+  </dialog>
+  <main id="main" tabindex="-1"><slot /></main>
+  <footer class="footer"><a href={href()}>Clever Knots</a><span>Макраме, вязание и плетение</span><a href={site.vkUrl} target="_blank" rel="noopener noreferrer">VK <Icon size={16} /></a></footer>
+  <script>
+    import { initialize } from '../motion/site';
+    document.addEventListener('astro:page-load', initialize);
+  </script>
+</body>
+</html>

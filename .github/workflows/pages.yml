@@ -1,0 +1,47 @@
+# Публикация по умолчанию выключена. Включать ENABLE_PAGES_DEPLOY только после согласования.
+name: GitHub Pages (после согласования)
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  # Commits made by the VK import use GITHUB_TOKEN and do not trigger push workflows.
+  workflow_run:
+    workflows: ['Импорт товаров из VK']
+    types: [completed]
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  build:
+    if: vars.ENABLE_PAGES_DEPLOY == 'true' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    env:
+      ASTRO_TELEMETRY_DISABLED: '1'
+      SITE_URL: ${{ vars.SITE_URL || 'https://chikirao.github.io' }}
+      BASE_PATH: ${{ vars.BASE_PATH || '/clever-knots/' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Публикация
+        id: deployment
+        uses: actions/deploy-pages@v4

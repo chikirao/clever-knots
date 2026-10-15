@@ -1,0 +1,42 @@
+# Товары из VK Маркета → работы на сайте. Нужен секрет репозитория VK_TOKEN
+# (ключ доступа сообщества с правом «Товары»). Без секрета задача просто пропускается.
+name: Импорт товаров из VK
+on:
+  schedule:
+    - cron: '0 3 * * *'   # каждый день в 06:00 по Москве
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: vk-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      VK_TOKEN: ${{ secrets.VK_TOKEN }}
+      ASTRO_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        if: env.VK_TOKEN != ''
+      - uses: actions/setup-node@v4
+        if: env.VK_TOKEN != ''
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+        if: env.VK_TOKEN != ''
+      - run: node scripts/vk-import.mjs
+        if: env.VK_TOKEN != ''
+      # Do not publish an import that breaks the site.
+      - run: npm run check && npm run build
+        if: env.VK_TOKEN != ''
+      - name: Сохранить изменения
+        if: env.VK_TOKEN != ''
+        run: |
+          git add src/content/works src/assets/uploads/vk
+          if git diff --cached --quiet; then echo "Изменений нет"; exit 0; fi
+          git config user.name "vk-sync"
+          git config user.email "vk-sync@users.noreply.github.com"
+          git commit -m "Импорт товаров из VK"
+          git push

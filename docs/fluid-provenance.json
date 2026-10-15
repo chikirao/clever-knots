@@ -1,0 +1,70 @@
+{
+  "source": "Fluid Functionalism official registry",
+  "items": [
+    {
+      "name": "tabs",
+      "url": "https://www.fluidfunctionalism.com/r/tabs.json",
+      "sha256": "db7927a4bb55bbc8b2edc48a24bf6d32364c27f1e54b938292a976aac681e33d"
+    },
+    {
+      "name": "springs",
+      "url": "https://www.fluidfunctionalism.com/r/springs.json",
+      "sha256": "25dba808aba95d87fe3924ae214084013b8718fc26a102db3fee9e55b201f781"
+    },
+    {
+      "name": "font-weight",
+      "url": "https://www.fluidfunctionalism.com/r/font-weight.json",
+      "sha256": "15f95ccd38499667cfc3a5ddedee4658bb667e47eef2b3f35d23a58fd0c677e4"
+    },
+    {
+      "name": "shape-context",
+      "url": "https://www.fluidfunctionalism.com/r/shape-context.json",
+      "sha256": "f593f686c5c854cb15f34b7a46f9b0a3b6897fc9b21f3d5b97be86cde372f882"
+    },
+    {
+      "name": "surface-context",
+      "url": "https://www.fluidfunctionalism.com/r/surface-context.json",
+      "sha256": "f409608e96ccd0a583342fb03599687309fe0f0688ca888053cb55ab7903639c"
+    },
+    {
+      "name": "surface-classes",
+      "url": "https://www.fluidfunctionalism.com/r/surface-classes.json",
+      "sha256": "fb99bcd57f921ea90ab09aa7e1df023579fd6899b47b1b009f243dd02f31bed0"
+    },
+    {
+      "name": "surfaces",
+      "url": "https://www.fluidfunctionalism.com/r/surfaces.json",
+      "sha256": "de336882f818d6f367d01044eabcfd30621cc1ca2a82488100e91dfb01176475"
+    },
+    {
+      "name": "icon-context",
+      "url": "https://www.fluidfunctionalism.com/r/icon-context.json",
+      "sha256": "e2d50bf68f93a26f0f4e63a40b982b0d31d0713ed96b252bb17f40220f6c71e3"
+    },
+    {
+      "name": "use-fluid-hover",
+      "url": "https://www.fluidfunctionalism.com/r/use-fluid-hover.json",
+      "sha256": "696e016bb9bf636bfd1ecdfb5404d655af4d59e9986d3a8ed3ad231540feee23"
+    },
+    {
+      "name": "tokens",
+      "url": "https://www.fluidfunctionalism.com/r/tokens.json",
+      "sha256": "9673e81219c4e2c818af030fff5394e17df840f7c972cef4264ca9e7c0b0b978"
+    },
+    {
+      "name": "size-context",
+      "url": "https://www.fluidfunctionalism.com/r/size-context.json",
+      "sha256": "5ac32ca21329e2543483d62afea604cedd0ce1f174619494c02da04f93090066"
+    },
+    {
+      "name": "type-scale",
+      "url": "https://www.fluidfunctionalism.com/r/type-scale.json",
+      "sha256": "3e4ba51be7b50ad2a7c019e6e95fb537924ab7bfd570696707feddcf69f5d4a9"
+    }
+  ],
+  "dependencies": [
+    "@radix-ui/react-tabs",
+    "lucide-react",
+    "motion"
+  ]
+}

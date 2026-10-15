@@ -1,0 +1,13 @@
+---
+import { ArrowUpRight, ArrowRight, Menu, X, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+const icons = {arrow:ArrowUpRight,right:ArrowRight,menu:Menu,close:X,left:ChevronLeft,next:ChevronRight,plus:Plus};
+// Empty space on each side of the drawn path, in the 24-unit Lucide grid. Buttons and links cancel it with
+// negative margins (see .button svg in global.css), so the visible gap and padding are what CSS says.
+const insets = {arrow:7,right:5,menu:3,close:6,left:9,next:9,plus:5};
+const {name='arrow',size=22} = Astro.props;
+const key = (name in icons ? name : 'arrow') as keyof typeof icons;
+const Component = icons[key];
+const strokeWidth = 1.5;
+const inset = ((insets[key] - strokeWidth / 2) / 24 * size).toFixed(2);
+---
+<Component size={size} strokeWidth={strokeWidth} aria-hidden="true" style={{"--icon-inset":`${inset}px`} as Record<string,string>} />

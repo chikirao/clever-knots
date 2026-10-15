@@ -1,0 +1,23 @@
+import {chromium} from '@playwright/test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const browser=await chromium.launch({channel:'msedge',headless:true});
+const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1.5});
+const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.goto('http://127.0.0.1:4321/');await page.waitForFunction(()=>!document.getElementById('loader'),undefined,{timeout:15000});await page.locator('.selected').scrollIntoViewIfNeeded();await page.waitForFunction(()=>document.querySelector('[data-rope-canvas]')?.getAttribute('data-renderer')==='webgl-3d');
+await page.waitForTimeout(350);
+const point=await page.locator('.rope-touch-layer path').evaluate(path=>{for(let s=100;s<path.getTotalLength();s+=12){const p=path.getPointAtLength(s),y=p.y-scrollY;if(y>220&&y<420&&p.x>innerWidth-40&&p.x<innerWidth-5)return{x:p.x,y};}throw new Error('No rope touch point');});
+const cdp=await context.newCDPSession(page);
+assert.equal(await page.evaluate(p=>document.elementFromPoint(p.x,p.y)?.tagName,point),'path');
+await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point]});
+for(let i=1;i<=8;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:point.x-i*6,y:point.y+i*2}]});await page.waitForTimeout(20);}
+await page.waitForFunction(()=>Number(document.querySelector('[data-rope-canvas]')?.getAttribute('data-pull'))>10);await page.screenshot({path:'.qa/rope-touch.png'});
+const pulled=await page.locator('[data-rope-canvas]').getAttribute('data-pull');
+await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForFunction(()=>Number(document.querySelector('[data-rope-canvas]')?.getAttribute('data-pull'))<1,undefined,{timeout:4000});
+const before=await page.evaluate(()=>scrollY);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:100,y:650}]});for(let i=1;i<=6;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:100,y:650-i*45}]});await page.waitForTimeout(20);}await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(200);assert((await page.evaluate(()=>scrollY))>before+100,'Scroll outside rope must remain native');
+const samples=await page.evaluate(async()=>{const times=[];let last=performance.now();await new Promise(resolve=>{let n=0;const tick=time=>{times.push(time-last);last=time;if(++n<100){scrollTo({top:scrollY+2,behavior:'instant'});requestAnimationFrame(tick);}else resolve();};requestAnimationFrame(tick);});return times.sort((a,b)=>a-b);});
+await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
+const throttled=await page.evaluate(async()=>{const times=[];let last=performance.now();await new Promise(resolve=>{let n=0;const tick=time=>{times.push(time-last);last=time;if(++n<90){scrollTo({top:scrollY-2,behavior:'instant'});requestAnimationFrame(tick);}else resolve();};requestAnimationFrame(tick);});return times.sort((a,b)=>a-b);});
+await page.screenshot({path:'.qa/rope-mobile-final.png'});
+assert.equal(errors.length,0,errors.join('\n'));
+const report={touchPullPx:Number(pulled),springReturned:true,nativeScroll:true,medianFrameMs:samples[50],p95FrameMs:samples[95],cpu4xMedianFrameMs:throttled[45],cpu4xP95FrameMs:throttled[85],deviceScaleFactor:1.5,realPhoneTest:false,errors};fs.writeFileSync('.qa/rope-report.json',JSON.stringify(report,null,2));console.log(report);await browser.close();

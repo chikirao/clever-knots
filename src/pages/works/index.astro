@@ -1,0 +1,9 @@
+---
+import Base from '../../layouts/Base.astro';
+import WorkFilter from '../../components/WorkFilter';
+import Contact from '../../components/Contact.astro';
+import {works,asset,href} from '../../lib/content';
+import {getImage} from 'astro:assets';
+const items=await Promise.all(works.map(async work=>{const img=await getImage({src:asset(work.images[0].src),width:1000,format:'webp'});return {...work,src:img.src,alt:work.images[0].alt,width:img.attributes.width as number,height:img.attributes.height as number,href:href(`works/${work.slug}/`)};}));
+---
+<Base title="Работы мастерской"><div class="page-intro"><span class="section-note">Макраме, вязание и плетение</span><h1>Работы<br />мастерской</h1><p>От общего вида к маленьким деталям. Выберите работу, чтобы рассмотреть её со всех сторон.</p></div><WorkFilter items={items} client:load /><Contact /></Base>

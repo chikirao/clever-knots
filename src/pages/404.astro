@@ -1,0 +1,5 @@
+---
+import Base from '../layouts/Base.astro';
+import {href} from '../lib/content';
+---
+<Base title="Страница не найдена"><section class="not-found"><span class="section-note">404</span><h1>Нить потерялась</h1><p>Такой страницы нет. Продолжим с главной или посмотрим работы.</p><a class="button" href={href()}>На главную</a><a class="text-link" href={href('works/')}>Посмотреть работы</a></section></Base>

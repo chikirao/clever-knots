@@ -1,0 +1,13 @@
+---
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import {works,asset,href,site,type Work} from '../../lib/content';
+import {Image,getImage} from 'astro:assets';
+export function getStaticPaths(){return works.map(work=>({params:{slug:work.slug},props:{work}}));}
+const {work} = Astro.props as {work:Work};
+const large = await Promise.all(work.images.map(image=>getImage({src:asset(image.src),width:1600,format:'webp'})));
+---
+<Base title={work.title} description={work.description}>
+<article class="work-page"><div class="work-info"><a class="text-link back-link" href={href('works/')}>Все работы</a><span class="section-note">{work.category}</span><h1>{work.title}</h1><p class="work-description">{work.description}</p>{work.price&&<p class="work-description">{work.price}</p>}{work.availability&&<p class="work-description">{work.availability}</p>}<a class="button" href={work.vkUrl ?? site.vkUrl} target="_blank" rel="noopener noreferrer">{work.vkUrl ? 'Заказать в VK' : 'Обсудить с мастером'} <Icon size={20} /></a></div><div class="gallery-container"><div class="gallery-grid" data-gallery>{work.images.map((image,index)=><button class="gallery-photo" data-photo data-full={large[index].src} data-caption={image.alt} aria-label={`Открыть фото ${index+1}: ${image.alt}`}><Image src={asset(image.src)} alt={image.alt} widths={[430,860,1280]} sizes="(min-width:1000px) 50vw, 100vw" loading={index===0?'eager':'lazy'} transition:name={index===0?`work-${work.slug}`:undefined}/></button>)}</div><p class="gallery-help">Нажмите на фотографию, чтобы рассмотреть её. В просмотре можно листать и увеличивать.</p></div></article>
+<dialog class="lightbox" data-lightbox aria-label="Фотографии работы"><div class="lightbox-controls"><span data-photo-count aria-live="polite"></span><button class="lightbox-zoom" data-photo-zoom aria-pressed="false">Увеличить</button><button class="lightbox-close" data-lightbox-close aria-label="Закрыть фотографии"><Icon name="close" size={28}/></button></div><div class="lightbox-stage" data-lightbox-stage><img data-lightbox-image alt="" /></div><div class="lightbox-bottom"><button data-photo-prev aria-label="Предыдущее фото"><Icon name="left" size={25}/></button><p class="lightbox-caption" data-lightbox-caption aria-live="polite"></p><button data-photo-next aria-label="Следующее фото"><Icon name="next" size={25}/></button></div></dialog>
+</Base>

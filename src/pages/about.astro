@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import Contact from '../components/Contact.astro';
+import {Image} from 'astro:assets';
+import {site,asset} from '../lib/content';
+---
+<Base title="О мастерской">
+  <div class="page-intro"><span class="section-note">О мастерской</span><h1>{site.aboutTitle}</h1><p>{site.aboutText}</p></div>
+  <section class="about-story"><Image src={asset('/src/assets/uploads/fiber-macro.webp')} alt="Фактура нити и ручное плетение крупным планом" widths={[430,860,1280]} sizes="(min-width:900px) 55vw, 100vw" /><div><h2>Нити.<br />Узлы.<br />Вещи.</h2><p>Макраме, вязание, плетение. Разные техники объединяет внимание к материалу и деталям.</p><p>Больше фотографий и публикаций мастерской — в сообществе VK.</p></div></section>
+  <Contact />
+</Base>

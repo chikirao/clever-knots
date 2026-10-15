@@ -1,0 +1,103 @@
+media:
+  input: src/assets/uploads
+  output: /src/assets/uploads
+  rename: safe
+  extensions: [jpg, jpeg, png, webp, avif]
+content:
+  - name: works
+    label: Работы
+    type: collection
+    path: src/content/works
+    format: json
+    filename: '{fields.slug}.json'
+    view:
+      fields: [title, category, published, order]
+      primary: title
+      sort: [order, title]
+      default:
+        sort: order
+        order: asc
+    fields:
+      - name: title
+        label: Название работы
+        type: string
+        required: true
+      - name: slug
+        label: Адрес страницы (латиницей, без пробелов)
+        type: string
+        required: true
+        description: 'Например: sumka-makrame. После публикации лучше не менять.'
+      - name: description
+        label: Описание
+        type: text
+        required: true
+      - name: category
+        label: Техника
+        type: select
+        required: true
+        options:
+          values: [Макраме, Вязание, Плетение]
+      - name: images
+        label: Фотографии (первая будет обложкой)
+        type: object
+        list:
+          min: 1
+          max: 12
+          collapsible:
+            summary: '{fields.alt}'
+        fields:
+          - name: src
+            label: Фотография
+            type: image
+            required: true
+          - name: alt
+            label: Что изображено на фотографии
+            type: string
+            required: true
+      - name: price
+        label: Цена (необязательно)
+        type: string
+        description: 'Например: 2 500 ₽. Оставьте пустым, если цену не нужно показывать.'
+      - name: availability
+        label: Доступность (необязательно)
+        type: string
+        description: 'Например: Есть в наличии или Изготовление под заказ. Указывайте только актуальный статус.'
+      - name: vkUrl
+        label: Товар в VK (заполняется автоматически)
+        type: string
+        description: 'Ссылка на этот товар в VK Маркете. Её ставит импорт из VK, вручную менять не нужно.'
+      - name: vkId
+        label: Номер товара VK (заполняется автоматически)
+        type: number
+        hidden: true
+      - name: published
+        label: Показывать на сайте
+        type: boolean
+        default: false
+      - name: featured
+        label: Показывать на главной
+        type: boolean
+        default: false
+      - name: order
+        label: Порядок (меньше число — выше)
+        type: number
+        default: 100
+  - name: site
+    label: Тексты сайта
+    type: file
+    path: src/content/site.json
+    format: json
+    operations:
+      delete: false
+      rename: false
+    fields:
+      - {name: name, label: Название мастерской, type: string, required: true}
+      - {name: tagline, label: Техники в первом экране, type: string, required: true}
+      - {name: heroNote, label: Подпись под кнопкой, type: string, required: true}
+      - {name: introTitle, label: Заголовок избранной работы, type: string, required: true}
+      - {name: introText, label: Подпись избранной работы, type: text, required: true}
+      - {name: aboutTitle, label: Заголовок о мастерской, type: string, required: true}
+      - {name: aboutText, label: О мастерской, type: text, required: true}
+      - {name: contactTitle, label: Заголовок контактов, type: string, required: true}
+      - {name: contactText, label: Текст контактов, type: text, required: true}
+      - {name: vkUrl, label: Ссылка на сообщество VK, type: string, required: true}
