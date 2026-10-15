@@ -50,18 +50,6 @@ export function route(root:HTMLElement):RopePoint[]{
   const heading=box('.section-heading',heroBox),photo=box('.selected-image',heroBox),caption=box('.work-caption',heroBox);
   const detail=box('.detail-section h2'),figure=box('.detail-section figure'),macro=box('.detail-section figure img'),about=box('.about-preview'),contact=box('.contact');
   const loop=(ax:number,ay:number,k:number)=>LOOP.map(([x,y])=>({x:ax+x*R*k,y:ay+y*R*k}));
-  /** Along a photo's top edge: in from the right margin over the corner, half the width along the edge, then tucked
-   *  under the photo; it comes out again at the bottom right corner. The photo covers the lower half of the rope. */
-  const edge=(p:ReturnType<typeof box>,lane:number,margin:number)=>[
-    {x:lane,y:p.top-R*4.5},
-    {x:lane-R*.5,y:p.top-R*1.7},
-    {x:p.right-R*2.4,y:p.top-R*.2},
-    {x:p.right-p.width*.35,y:p.top},
-    {x:p.left+p.width*.36,y:p.top+R*.05},
-    {x:p.left+p.width*.2,y:p.top+R*2.2},
-    {x:p.left+p.width*.55,y:p.top+p.height*.55},
-    {x:p.right-R*1.5,y:p.bottom-R*1.2},
-    {x:margin,y:p.bottom+R*1.6}];
   let points:Vec[];
   if(w>=1000){
     // Desktop: down the right lane beside the text column, along the top edge of the macro photo, through the left margin
@@ -83,16 +71,29 @@ export function route(root:HTMLElement):RopePoint[]{
       {x:lane-R*1.2,y:contact.top+R*1.5},
       ...loop(lane-R*1.6,contact.top+contact.height*.38,1.15)];
   }else{
-    // Stacked layout: along the right edge, along the top edge of each photo, tucked behind the wide buttons.
-    const outer=w-R-5,inner=w-R*(w<420?2.3:3.3),button=box('.hero-action .button',heroBox),contactButton=box('.contact .button');
+    // Stacked layout, one calm line down the page: the right edge, across the top edge of the featured photo to its left
+    // edge and down it, tucked under the photo, out at its bottom right corner, half under the right edge of the macro photo,
+    // and a resting loop under the contact button. The photos cover the part of the rope that runs under them.
+    const lane=w-R*1.15,button=box('.hero-action .button',heroBox),contactButton=box('.contact .button');
     points=[...tail,
-      {x:outer,y:button.cy},
-      ...edge(photo,inner,outer),
-      {x:inner+R,y:caption.cy},
-      {x:inner,y:detail.cy},
-      ...edge(macro,inner,outer),
-      {x:inner,y:figure.bottom+(about.top-figure.bottom)*.6},
-      {x:outer,y:about.cy},
+      {x:lane,y:button.cy},
+      {x:lane,y:photo.top-R*5.5},
+      {x:lane-R*1.1,y:photo.top-R*1.8},
+      {x:photo.right-R*3.2,y:photo.top-R*.25},
+      {x:photo.right-R*6,y:photo.top},
+      {x:photo.left+photo.width*.5,y:photo.top},
+      {x:photo.left+R*2.6,y:photo.top+R*.1},
+      {x:photo.left+R*.25,y:photo.top+R*1.8},
+      {x:photo.left,y:photo.top+photo.height*.3},
+      {x:photo.left+R*.3,y:photo.top+photo.height*.5},
+      {x:photo.left+R*2.8,y:photo.top+photo.height*.64},
+      {x:photo.left+photo.width*.55,y:photo.top+photo.height*.8},
+      {x:photo.right-R*1.6,y:photo.bottom-R*1.2},
+      {x:lane,y:photo.bottom+R*1.4},
+      {x:lane,y:caption.cy},
+      {x:lane,y:detail.cy},
+      {x:lane,y:macro.top+macro.height*.5},
+      {x:lane,y:about.cy},
       // The contact heading reaches almost to the edge: the rope runs half off screen beside it.
       {x:w-R*.4,y:contact.top+R*2},
       {x:w-R*.4,y:contactButton.top-R},
