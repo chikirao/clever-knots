@@ -267,7 +267,9 @@ export function mountRope3D(root:HTMLElement):null|(()=>void){
   }
   const observer=new ResizeObserver(resize);observer.observe(root);
   // Layout changes reach the ResizeObserver. A shrinking iOS toolbar is not one: only a new width or a taller viewport counts.
-  addEventListener('resize',()=>{if(innerWidth!==viewW||innerHeight>viewH)resize();},{signal});document.fonts.ready.then(()=>{if(!disposed)resize();});
+  addEventListener('resize',()=>{if(innerWidth!==viewW||innerHeight>viewH)resize();},{signal});
+  // The hero entrance animation moves the main button without resizing the root: rebuild the route once it has settled.
+  root.addEventListener('rope:layout',resize,{signal});document.fonts.ready.then(()=>{if(!disposed)resize();});
   canvas.addEventListener('webglcontextlost',e=>{if(disposed)return;e.preventDefault();root.dataset.ropeFallback='true';root.dispatchEvent(new Event('rope:lost'));},{signal});
   canvas.dataset.renderer='webgl-3d';resize();gsap.ticker.add(render);
   return()=>{disposed=true;controller.abort();observer.disconnect();gsap.ticker.remove(render);svg.remove();if(strip)gl.deleteBuffer(strip);gl.deleteTexture(texture);gl.deleteTexture(fibre);gl.deleteProgram(material);gl.deleteProgram(shade);gl.getExtension('WEBGL_lose_context')?.loseContext();};
