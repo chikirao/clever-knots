@@ -24,7 +24,7 @@ export function initialize(){
   const root=document.querySelector<HTMLElement>('[data-thread]');const destroyRope=root?mountRope(root):()=>{};
   const reduced=matchMedia('(prefers-reduced-motion:reduce)');
   on(reduced,'change',()=>initialize());on(root,'rope:lost',()=>initialize());
-  const context=gsap.context(()=>{if(!reduced.matches)gsap.fromTo('.hero-type,.hero-action',{opacity:.6,y:8},{opacity:1,y:0,duration:.65,ease:'power3.out',stagger:.07,clearProps:'all'});});
+  const context=gsap.context(()=>{if(!reduced.matches)gsap.fromTo('.hero-type,.hero-action',{opacity:.6,y:8},{opacity:1,y:0,duration:.65,ease:'power3.out',stagger:.07,clearProps:'all',onComplete:()=>root?.dispatchEvent(new Event('rope:layout'))});});
   cleanup=()=>{controller.abort();document.documentElement.classList.remove('dialog-open');menu?.close();box?.close();destroyRope();context.revert();};
 }
 document.addEventListener('astro:before-swap',()=>cleanup());

@@ -17,8 +17,12 @@
 [data-rope-start]{left:89.9%;top:69%}
 .detail-section h2{position:relative;z-index:4}.detail-section figure{z-index:3}
 html.dialog-open{overflow:hidden}
-.rope-touch-layer{position:fixed;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;overflow:hidden}.rope-touch-layer path{pointer-events:stroke;touch-action:none;cursor:grab}.rope-touch-layer path.grabbed{cursor:grabbing}.rope-touch-layer path:focus-visible{stroke:#98724c20;outline:none}
-.rope-touch-layer{touch-action:none}
+.rope-touch-layer{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;overflow:hidden}.rope-touch-layer path{pointer-events:stroke;cursor:grab}.rope-touch-layer path.grabbed{cursor:grabbing}.rope-touch-layer path:focus-visible{stroke:#98724c20;outline:none}
+/* Vertical swipes on the rope scroll the page natively; sideways ones pull it (rope-3d.ts). The second value keeps
+   pinch-zoom where the keyword is supported; elsewhere the first one stays. */
+.rope-touch-layer,.rope-touch-layer path{touch-action:pan-y;touch-action:pan-y pinch-zoom}
+/* WebGL rope: a band of the page in document flow, positioned by rope-3d.ts. The Canvas2D fallback stays fixed. */
+.thread-canvas[data-renderer=webgl-3d]{position:absolute;height:auto}
 .hero h1{font-weight:500}.detail-section figcaption{background:var(--paper);width:fit-content;padding:3px 6px 3px 0}
 @media(max-width:767px){.contact p{max-width:29ch}.about-preview p{padding-right:12px}}
 @media(max-width:767px){.header{height:74px}.hero{padding-top:2px}.hero-sculpture{margin-top:-3px}}
