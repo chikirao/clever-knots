@@ -8,6 +8,10 @@ const FIBRE_TOP=40/39.5;
  *  never trails behind a native (iOS momentum) scroll. It covers the visible area plus this many viewport heights above
  *  and below, and moves only when the scroll gets within GUARD viewport heights of its edge. */
 const OVERSCAN=.5,GUARD=.25;
+/** A touch on the rope pulls it only when it heads more than this many degrees away from vertical; steeper swipes scroll. */
+const PULL_ANGLE=60;
+/** Movement in px that decides the direction of a touch gesture; it is then kept until the finger lifts. */
+const DECIDE_DISTANCE=10;
 /** Canvas pixel budget: the band is taller than the screen, so the resolution drops slightly on very large screens. */
 const PIXELS=matchMedia('(pointer:coarse)').matches?4e6:1.2e7;
 
@@ -225,9 +229,37 @@ export function mountRope3D(root:HTMLElement):null|(()=>void){
     build();place(true);
   }
   function nearest(px:number,py:number){let min=Infinity,best=points[0];for(const p of points){const distance=(p.x-px)**2+(p.y-py)**2;if(distance<min){min=distance;best=p;}}return best;}
-  hit.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();pointer=e.pointerId;pointerStart={x:e.clientX,y:e.clientY};grabbed=Math.max(pin+radius*4,nearest(e.clientX,e.clientY+scrollY).s);hit.setPointerCapture(e.pointerId);hit.classList.add('grabbed');dirty=true;},{signal});
-  hit.addEventListener('pointermove',e=>{if(pointer!==e.pointerId)return;const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y,max=width<1000?65:90,factor=Math.min(1,max/(Math.hypot(dx,dy)||1));x.target=dx*factor;y.target=dy*factor;dirty=true;},{signal});
-  const letGo=()=>{pointer=null;x.target=0;y.target=0;hit.classList.remove('grabbed');dirty=true;};
+  /* Mouse grabs at once. A touch (or pen) that lands on the rope is a page scroll by default: its first DECIDE_DISTANCE px
+   * pick the direction for the whole gesture, and only a sideways one, more than PULL_ANGLE from vertical, pulls. */
+  let mode:'idle'|'pending'|'pull'|'native'|'drag'='idle',blocked=false,lastY=0,touchStart={x:0,y:0};
+  function grab(e:PointerEvent){mode='pull';grabbed=Math.max(pin+radius*4,nearest(pointerStart.x,pointerStart.y+scrollY).s);hit.setPointerCapture(e.pointerId);hit.classList.add('grabbed');dirty=true;}
+  hit.addEventListener('pointerdown',e=>{
+    if(e.button!==0||pointer!==null)return;
+    pointer=e.pointerId;pointerStart={x:e.clientX,y:e.clientY};lastY=e.clientY;blocked=false;
+    if(e.pointerType==='mouse'){e.preventDefault();grab(e);}else mode='pending';
+  },{signal});
+  hit.addEventListener('pointermove',e=>{
+    if(pointer!==e.pointerId)return;
+    const dx=e.clientX-pointerStart.x,dy=e.clientY-pointerStart.y;
+    if(mode==='pending'){
+      if(Math.hypot(dx,dy)<DECIDE_DISTANCE)return;
+      // Up to 45° the browser scrolls (pan-y). Between 45° and PULL_ANGLE it will not, and neither will it after a cancelled
+      // sideways touchmove, so the page follows the finger by hand.
+      const angle=Math.atan2(Math.abs(dx),Math.abs(dy))*180/Math.PI;
+      if(angle>PULL_ANGLE)grab(e);else mode=angle>45||blocked?'drag':'native';
+    }
+    if(mode==='drag'){scrollTo({top:scrollY+lastY-e.clientY,behavior:'instant'});lastY=e.clientY;return;}
+    if(mode!=='pull')return;
+    const max=width<1000?65:90,factor=Math.min(1,max/(Math.hypot(dx,dy)||1));x.target=dx*factor;y.target=dy*factor;dirty=true;
+  },{signal});
+  // pan-y lets the browser scroll vertical swipes itself (it then sends pointercancel). iOS Safari may still start a
+  // vertical pan on a slightly slanted sideways swipe, so touchmove is cancelled while the swipe heads sideways or pulls.
+  hit.addEventListener('touchstart',e=>{const t=e.touches[0];touchStart={x:t.clientX,y:t.clientY};},{signal,passive:true});
+  hit.addEventListener('touchmove',e=>{
+    const t=e.touches[0],sideways=Math.abs(t.clientX-touchStart.x)>Math.abs(t.clientY-touchStart.y);
+    if(e.cancelable&&(mode==='pull'||mode==='drag'||(mode==='pending'&&sideways))){e.preventDefault();blocked=true;}
+  },{signal,passive:false});
+  const letGo=()=>{pointer=null;mode='idle';x.target=0;y.target=0;hit.classList.remove('grabbed');dirty=true;};
   hit.addEventListener('pointerup',letGo,{signal});hit.addEventListener('pointercancel',letGo,{signal});hit.addEventListener('lostpointercapture',letGo,{signal});
   hit.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();grabbed=Math.max(pin+radius*4,nearest(width*.85,scrollY+innerHeight*.7).s);x.velocity-=220;y.velocity+=60;dirty=true;}},{signal});
   function draw(p:WebGLProgram,u:Record<string,WebGLUniformLocation|null>,widthScale:number,offset:[number,number],lag:number,shadowStrength=1){
