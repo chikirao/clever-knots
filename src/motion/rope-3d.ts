@@ -161,7 +161,7 @@ export function mountRope3D(root:HTMLElement):null|(()=>void){
   const gl=canvas.getContext('webgl',{alpha:true,antialias:false,depth:true,stencil:true,premultipliedAlpha:true,powerPreference:'low-power'});
   if(!gl)return null;
   const controller=new AbortController(),{signal}=controller;
-  let points:RopePoint[]=[],radius=12,pin=0,length=1,width=innerWidth,dirty=true,disposed=false,occlusion={left:0,right:0,top:0,bottom:0};
+  let points:RopePoint[]=[],radius=12,pin=0,length=1,width=innerWidth,dirty=true,disposed=false,occlusion:{left:number;right:number;top:number;bottom:number}[]=[];
   let strip:WebGLBuffer|null=null,count=0;
   const x={position:0,velocity:0,target:0},y={position:0,velocity:0,target:0};
   let grabbed=0,pointer:number|null=null,pointerStart={x:0,y:0},shapeDirty=true;
@@ -203,7 +203,8 @@ export function mountRope3D(root:HTMLElement):null|(()=>void){
     // The part under the raster tail stays pinned to the logo.
     const logo=root.querySelector('[data-rope-logo] img')!.getBoundingClientRect(),tailEnd=logo.top+scrollY+logo.height*.74;
     pin=(points.find(p=>p.y>=tailEnd)||points[0]).s;
-    const photo=root.querySelector('.detail-section figure img')!.getBoundingClientRect();occlusion={left:photo.left,right:photo.right,top:photo.top+scrollY,bottom:photo.bottom+scrollY};
+    // The rope passes under the photos: no grab zone where it is hidden.
+    occlusion=[...root.querySelectorAll('.selected-image img,.detail-section figure img')].map(img=>{const r=img.getBoundingClientRect();return{left:r.left,right:r.right,top:r.top+scrollY,bottom:r.bottom+scrollY};});
     const data=new Float32Array(points.length*12);
     points.forEach((p,i)=>{for(const side of [0,1]){const o=(i*2+side)*6;data.set([p.x,p.y,p.nx,p.ny,p.s,side?-1:1],o);}});
     if(!strip)strip=gl!.createBuffer();gl!.bindBuffer(gl!.ARRAY_BUFFER,strip);gl!.bufferData(gl!.ARRAY_BUFFER,data,gl!.STATIC_DRAW);count=points.length*2;
@@ -293,7 +294,7 @@ export function mountRope3D(root:HTMLElement):null|(()=>void){
     draw(shade,shadowUniforms,2.1,shadowOffset,radius*5,1.6);
     gl!.disable(gl!.STENCIL_TEST);gl!.depthMask(true);
     if(active||shapeDirty){let connected=false;const commands:string[]=[];
-      for(const p of points){if(p.s<pin)continue;const lock=Math.min(1,(p.s-pin)/(radius*6)),weight=Math.exp(-Math.pow((p.s-grabbed)/spread(),2))*lock,px=p.x+x.position*weight,py=p.y+y.position*weight;if(px>occlusion.left&&px<occlusion.right&&py>occlusion.top&&py<occlusion.bottom){connected=false;continue;}commands.push(`${connected?'L':'M'}${px.toFixed(1)},${py.toFixed(1)}`);connected=true;}
+      for(const p of points){if(p.s<pin)continue;const lock=Math.min(1,(p.s-pin)/(radius*6)),weight=Math.exp(-Math.pow((p.s-grabbed)/spread(),2))*lock,px=p.x+x.position*weight,py=p.y+y.position*weight;if(occlusion.some(o=>px>o.left&&px<o.right&&py>o.top&&py<o.bottom)){connected=false;continue;}commands.push(`${connected?'L':'M'}${px.toFixed(1)},${py.toFixed(1)}`);connected=true;}
       hit.setAttribute('d',commands.join(' '));shapeDirty=false;}
     canvas.dataset.pull=String(Math.round(Math.hypot(x.position,y.position)*10)/10);
   }
