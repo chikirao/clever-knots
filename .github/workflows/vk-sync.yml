@@ -5,6 +5,11 @@ on:
   schedule:
     - cron: '0 3 * * *'   # каждый день в 06:00 по Москве
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Пробный запуск без сохранения'
+        type: boolean
+        default: true
 permissions:
   contents: write
 concurrency:
@@ -26,13 +31,13 @@ jobs:
           cache: npm
       - run: npm ci
         if: env.VK_TOKEN != ''
-      - run: node scripts/vk-import.mjs
+      - run: node scripts/vk-import.mjs ${{ inputs.dry_run && '--dry' || '' }}
         if: env.VK_TOKEN != ''
       # Do not publish an import that breaks the site.
       - run: npm run check && npm run build
         if: env.VK_TOKEN != ''
       - name: Сохранить изменения
-        if: env.VK_TOKEN != ''
+        if: env.VK_TOKEN != '' && !inputs.dry_run
         run: |
           git add src/content/works src/assets/uploads/vk
           if git diff --cached --quiet; then echo "Изменений нет"; exit 0; fi

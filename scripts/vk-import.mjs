@@ -81,6 +81,8 @@ function existingWorks() {
 }
 
 const items = await fetchItems();
+// An empty response can mean missing permissions or an API failure. Never hide the whole catalogue on that basis.
+if (!items.length) throw new Error('VK не вернул товары; импорт остановлен без изменения каталога.');
 fs.mkdirSync(PHOTOS, {recursive: true});
 const {byVk, slugs} = existingWorks();
 const keepPhotos = new Set();
@@ -128,8 +130,5 @@ for (const [vkId, work] of byVk) {
   if (!dry) fs.writeFileSync(path.join(WORKS, `${work.slug}.json`), JSON.stringify({...work, published: false}, null, 2) + '\n');
 }
 
-// Photos replaced in VK.
-for (const name of fs.readdirSync(PHOTOS)) {
-  if (!keepPhotos.has(name)) { console.log(`удалено фото: ${name}`); if (!dry) fs.rmSync(path.join(PHOTOS, name)); }
-}
+// Never delete photos automatically: manually managed works and skipped items may reference them.
 console.log(`VK: ${items.length} товаров, новых ${created}, обновлено ${updated}${dry ? ' (пробный запуск)' : ''}.`);
