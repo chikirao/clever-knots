@@ -5,7 +5,8 @@ import { ArrowUpRight } from 'lucide-react';
 type Item={slug:string;title:string;category:string;price?:string;src:string;alt:string;width:number;height:number;href:string};
 export default function WorkFilter({items}:{items:Item[]}){
   const [value,setValue]=useState('all');
-  const categories=[...new Set(items.map(i=>i.category))];
+  const categoryOrder=['Макраме','Плетение','Кожа','Вязание'];
+  const categories=[...new Set(items.map(i=>i.category))].sort((a,b)=>(categoryOrder.indexOf(a)<0?99:categoryOrder.indexOf(a))-(categoryOrder.indexOf(b)<0?99:categoryOrder.indexOf(b)));
   const visible=value==='all'?items:items.filter(i=>i.category===value);
   return <MotionConfig reducedMotion="user"><Tabs value={value} onValueChange={setValue}>
     <div className="works-filter"><TabsList aria-label="Категория работ"><TabItem value="all" label="Все работы" />{categories.map(category=><TabItem key={category} value={category} label={category} />)}</TabsList></div>
