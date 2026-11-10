@@ -10,7 +10,7 @@ const workSchema = z.object({
   price: z.string().optional(), availability: z.string().optional(),
   vkId: z.number().int().optional(), vkUrl: z.url().optional(),
   presentation: z.enum(['standard','travelbook']).default('standard'),
-  images: z.array(z.object({src: z.string(), alt: z.string().min(1)})).min(1),
+  images: z.array(z.object({src: z.string(), alt: z.string().min(1), role: z.enum(['detail','sizes','materials']).optional()})).min(1),
 });
 export type Work = z.infer<typeof workSchema>;
 const entries = import.meta.glob('../content/works/*.json', {eager:true, import:'default'});

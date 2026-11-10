@@ -40,7 +40,7 @@ content:
       - name: presentation
         label: Вид страницы
         type: select
-        description: 'Для travelbook: первые три фото — обложка, разворот и цвета. Остальные — реальные детали изделия.'
+        description: 'Для travelbook: первые три фото — обложка, разворот и цвета. Для дополнительных визуализаций выберите роль sizes или materials.'
         default: standard
         options:
           values: [standard, travelbook]
@@ -61,6 +61,12 @@ content:
             label: Что изображено на фотографии
             type: string
             required: true
+          - name: role
+            label: Роль на странице тревелбука
+            type: select
+            options:
+              values: [detail, sizes, materials]
+            description: 'detail — реальные детали; sizes — сравнение форматов; materials — оформление. Для обычных работ можно не выбирать.'
       - name: price
         label: Цена (необязательно)
         type: string

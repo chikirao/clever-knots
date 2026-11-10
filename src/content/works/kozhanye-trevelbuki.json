@@ -1,7 +1,7 @@
 {
   "slug": "kozhanye-trevelbuki",
   "title": "Кожаные тревелбуки",
-  "description": "Кожаная обложка для тетрадей, заметок и поездок. А6, А5 или ваш размер. Цвет кожи, резинки и оформление подберём вместе.",
+  "description": "Кожаная обложка для тетрадей, заметок и поездок. А6, А5, А4 или ваш размер. Цвет кожи, резинки и оформление подберём вместе.",
   "category": "Кожа",
   "presentation": "travelbook",
   "published": true,
@@ -40,6 +40,16 @@
     {
       "src": "/src/assets/uploads/travelbooks/cognac.webp",
       "alt": "Рыжая обложка с запахом"
+    },
+    {
+      "src": "/src/assets/uploads/travelbooks/sizes-v2.webp",
+      "alt": "Оливковый А6, синий А5 и рыжий А4 — визуализация форматов на заказ",
+      "role": "sizes"
+    },
+    {
+      "src": "/src/assets/uploads/travelbooks/materials.webp",
+      "alt": "Сочетания кожи, резинок и подвесок — визуализация оформления",
+      "role": "materials"
     }
   ]
 }
