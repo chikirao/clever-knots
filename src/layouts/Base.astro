@@ -58,7 +58,7 @@ const canonical = new URL(Astro.url.pathname,Astro.site);
     <p>{site.tagline}</p>
   </dialog>
   <main id="main" tabindex="-1"><slot /></main>
-  <footer class="footer"><a href={href()}>Clever Knots</a><span>Макраме, вязание и плетение</span><a href={site.vkUrl} target="_blank" rel="noopener noreferrer">VK <Icon size={16} /></a></footer>
+  <footer class="footer"><a href={href()}>Clever Knots</a><span>Макраме, плетение и кожа</span><a href={site.vkUrl} target="_blank" rel="noopener noreferrer">VK <Icon size={16} /></a></footer>
   <script>
     import { initialize } from '../motion/site';
     document.addEventListener('astro:page-load', initialize);

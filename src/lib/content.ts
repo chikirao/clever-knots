@@ -9,6 +9,7 @@ const workSchema = z.object({
   featured: z.boolean().default(false), order: z.number().default(100),
   price: z.string().optional(), availability: z.string().optional(),
   vkId: z.number().int().optional(), vkUrl: z.url().optional(),
+  presentation: z.enum(['standard','travelbook']).default('standard'),
   images: z.array(z.object({src: z.string(), alt: z.string().min(1)})).min(1),
 });
 export type Work = z.infer<typeof workSchema>;

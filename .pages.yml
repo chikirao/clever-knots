@@ -36,7 +36,14 @@ content:
         type: select
         required: true
         options:
-          values: [Макраме, Вязание, Плетение]
+          values: [Макраме, Плетение, Кожа, Вязание]
+      - name: presentation
+        label: Вид страницы
+        type: select
+        description: 'Для travelbook: первые три фото — обложка, разворот и цвета. Остальные — реальные детали изделия.'
+        default: standard
+        options:
+          values: [standard, travelbook]
       - name: images
         label: Фотографии (первая будет обложкой)
         type: object
